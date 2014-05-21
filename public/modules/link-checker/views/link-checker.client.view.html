@@ -1,0 +1,13 @@
+<section data-ng-controller="LinkCheckerController">
+	<p>Course Manifest</p>
+<select ng-model='domain' ng-options="d.name for d in domains"></select>
+<select ng-model='course' id='courseSelect' ng-options="c.title for c in courses" ui-select2></select>
+
+<ul>
+<li ng-repeat="domain in domains">{{domain.id}} - {{domain.name}} - {{domain.parentid}}</li></ul>
+<button ng-click="fetch()">fetch</button><button ng-click="query('http')">HyperLinks</button><br>
+<div ng-repeat='item in validated.valid'>{{item.url}} - {{item.status}}</div>
+<div ng-repeat='item in validated.invalid'>{{item.url}} - {{item.status}}</div>
+
+
+</section>
