@@ -12,7 +12,8 @@ var init = require('./config/init')(),
  */
 
 // Bootstrap db connection
-var db = mongoose.connect(config.db);
+var db = null;
+// var db = mongoose.connect(config.db);  uncomment to re-enable mongodb
 
 // Init the express application
 var app = require('./config/express')(db);

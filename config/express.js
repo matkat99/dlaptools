@@ -84,6 +84,7 @@ module.exports = function(db) {
 	app.use(cookieParser());
 
 	// Express MongoDB session storage
+	/*  uncomment to re-enable mongodb
 	app.use(session({
 		secret: config.sessionSecret,
 		store: new mongoStore({
@@ -91,7 +92,7 @@ module.exports = function(db) {
 			collection: config.sessionCollection
 		})
 	}));
-
+*/
 	// use passport session
 	app.use(passport.initialize());
 	app.use(passport.session());
