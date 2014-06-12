@@ -15,6 +15,7 @@
     "angular-ui-utils": "~0.1.1",
     "angular-ui-router": "~0.2.10",
     "lodash": "~2.4.1",
-    "angular-underscore-module": "*"
+    "angular-underscore-module": "*",
+    "jquery-xml2json": "~0.0.6"
   }
 }

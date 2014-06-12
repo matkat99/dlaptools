@@ -5,9 +5,25 @@
 
 <ul>
 <li ng-repeat="domain in domains">{{domain.id}} - {{domain.name}} - {{domain.parentid}}</li></ul>
-<button ng-click="fetch()">fetch</button><button ng-click="query('http')">HyperLinks</button><br>
-<div ng-repeat='item in validated.valid'>{{item.url}} - {{item.status}}</div>
-<div ng-repeat='item in validated.invalid'>{{item.url}} - {{item.status}}</div>
+<button ng-click="query('href src')">HyperLinks</button><br>
+<table>
+<tr>
+	<th>Item</th><th>URL</th><th>Status</th>
+	</tr>
+	<tr ng-repeat='item in validated.invalid' class="bg-danger">
+		<td><a href="https://byui.brainhoney.com/Frame/Component/CoursePlayer?enrollmentid={{item.entityid}}&itemid={{item.itemid}}" target="_blank">{{item.title}}</td>
+		<td>{{item.url}}</td>
+		<td>{{item.status}}</td>
+		
+	</tr>
+	<tr ng-repeat="vitem in validated.valid | orderBy: 'title'" ng-class="{'bg-success': vitem.status == 200, 'bg-warning': vitem.status == 401 || vitem.status == 302 }">
+		<td><a href="https://byui.brainhoney.com/Frame/Component/CoursePlayer?enrollmentid={{vitem.entityid}}&itemid={{vitem.itemid}}" target="_blank">{{vitem.title}}</td>
+		<td>{{vitem.url}}</td>
+		<td>{{vitem.status}}</td>
+		
+	</tr>
+</table>
 
+{{list}}
 
 </section>
