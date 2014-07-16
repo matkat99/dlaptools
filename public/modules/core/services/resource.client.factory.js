@@ -1,13 +1,25 @@
 'use strict';
 angular.module('core')
- 
-   
- .config(['$httpProvider', function($httpProvider) {
-    //$httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
-   // delete $httpProvider.defaults.headers.common['X-Requested-With']; // = 'XMLHttpRequest';
-   // $httpProvider.defaults.useXDomain = true;
-    //$httpProvider.defaults.headers.common.Authorization = "Basic " + Base64.encode("key978wing:X") ;
+ .factory('myHttpInterceptor', function() {
+    return {
+            // optional method
+      'response': function(response) {
         
+        if(typeof response.data !== 'object' && response.config.method === 'jsonp')
+         response.data = '{ "response": "'+response.data+'"}';
+       //console.log(response);
+        return response;
+      }
+    };
+  })
+   
+ .config(['$httpProvider',  function($httpProvider) {
+    //$httpProvider.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+    //delete $httpProvider.defaults.headers.common['X-Requested-With']; // = 'XMLHttpRequest';
+   //$httpProvider.defaults.useXDomain = true;
+    //$httpProvider.defaults.headers.common.Authorization = "Basic " + Base64.encode("key978wing:X") ;
+    $httpProvider.interceptors.push('myHttpInterceptor');
+      
   }])
 
   .factory('dataResource', ['$http', '$q', '_', function($http, $q, _) {

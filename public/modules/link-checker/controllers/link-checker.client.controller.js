@@ -1,7 +1,7 @@
 'use strict';
 
-angular.module('link-checker').controller('LinkCheckerController', ['$scope', '$http', '$q', 'Authentication', 'dlapRepository','_',
-	function($scope, $http, $q, Authentication, dlapRepository, _) {
+angular.module('link-checker').controller('LinkCheckerController', ['$scope', '$http', '$q', '$window', 'Authentication', 'dlapRepository','_',
+	function($scope, $http, $q, $window, Authentication, dlapRepository, _) {
 		 $scope.authentication = Authentication;
 		 $scope.domain = {};
         $scope.domains = [];
@@ -42,6 +42,10 @@ angular.module('link-checker').controller('LinkCheckerController', ['$scope', '$
         });
       };
 
+      $scope.open = function(item) {
+          window.open('https://byui.brainhoney.com/Frame/Component/CoursePlayer?enrollmentid='+item.entityid+'&itemid='+item.itemid);
+      };
+
       $scope.$watch('domain', function (newVal, oldval) {
       if (newVal !== oldval) {
           $scope.getCourses(newVal);
@@ -55,7 +59,7 @@ angular.module('link-checker').controller('LinkCheckerController', ['$scope', '$
         var matchArray;
 
         // Regular expression to find FTP, HTTP(S) and email URLs.
-        var regexToken = /(((ftp|https?):\/\/)[\-\w@:%_\+.~#?,&\/\/=]+)/g;
+        var regexToken = /(((ftp|https?):\/\/)[\-\w\ @:%_\+.~#?,&\/\/=]+)/g;
 
         // Iterate through any URLs in the text.
         while( (matchArray = regexToken.exec( source )) !== null )
@@ -75,7 +79,7 @@ angular.module('link-checker').controller('LinkCheckerController', ['$scope', '$
         var matchArray;
 
         // Regular expression to find FTP, HTTP(S) and email URLs.
-        var regexToken = /(navToItem\(\'[\-\w\'\)]+)/g;
+        var regexToken = /(navToItem[\(\'\-\w\'\)]+)/g;
 
         // Iterate through any URLs in the text.
         while( (matchArray = regexToken.exec( source )) !== null )
@@ -95,7 +99,7 @@ angular.module('link-checker').controller('LinkCheckerController', ['$scope', '$
         var matchArray;
 
         // Regular expression to find FTP, HTTP(S) and email URLs.
-        var regexToken = /(\[~\]\/[\-\w]+\.[\w]+)/g;
+        var regexToken = /(\[~\]\/[\-\w\ \%\()]+[\.\w]+)/g;
 
         // Iterate through any URLs in the text.
         while( (matchArray = regexToken.exec( source )) !== null )
@@ -106,6 +110,12 @@ angular.module('link-checker').controller('LinkCheckerController', ['$scope', '$
 
         return urlArray;
 
+      };
+
+      var getItemId = function (text) {
+        var path = text.explode('/');
+        console.log(path);
+        return path[2];
       };
 
       $scope.checkUrls = function(){
@@ -146,8 +156,18 @@ angular.module('link-checker').controller('LinkCheckerController', ['$scope', '$
         }
     });
 
+    var getResourceList = function() {
+      return dlapRepository.getResourceList($scope.courseid);
+         
+    };
+
+    var getResource = function(courseid, path) {
+      return dlapRepository.getResource(courseid, path);
+      
+    };
+
     var searchCourse =  function(query, course, start, results){
-      var results = results || [];
+      var Results = results || [];
       var batch = {};
       var deferred = $q.defer();  
       dlapRepository.searchCourse(query, course, start).then(function(data) {
@@ -156,29 +176,71 @@ angular.module('link-checker').controller('LinkCheckerController', ['$scope', '$
           xml = xml.replace('\r','');
           batch = xml2json(xml, ' '); //$scope.getUrls(data.response.results.$xml);
         if (batch.result.doc !== undefined) {
-          results = results.concat(batch.result.doc);
-           deferred.resolve(searchCourse(query,course, start+25, results));
+          Results = Results.concat(batch.result.doc);
+           deferred.resolve(searchCourse(query,course, start+25, Results));
         }
-        else deferred.resolve(results);
+        else deferred.resolve(Results);
         });
         return deferred.promise;
     };
 
+  $scope.query2 = function(){
+    var resources = [];
+    getResourceList().then(function(res) {
+      resources = res.response.resources.resource;
+      angular.forEach(resources, function(value, key){
+        if(value.path.indexOf('Asset') < 0) {
+          getResource($scope.courseid, value.path).then(function(res){
+            value.html = res;
+            //get external URLs
+            value.urls = $scope.getUrls(value.html);
+            angular.forEach(value.urls, function(uvalue, ukey) {
+                    $scope.list.push({'entityid': value.entityid, 'itemid' : getItemId(value.path), 'url' : uvalue, 'type': 'ext'});
+                });
+            //get internal URLS
+            value.internalUrls = $scope.getInternalUrls(value.arr[0].str);
+                angular.forEach(value.internalUrls, function(uvalue, ukey) {
+                    $scope.list.push({
+                              'entityid': value.entityid, 
+                              'itemid' : getItemId(value.path), 
+                               
+                              'url' : 'https://byui.brainhoney.com/Frame/Component/CoursePlayer?enrollmentid='+value.entityid+'&itemid='+getItemId(value.path),
+                              'type': 'int'});
+                });
+          }, function(res) { //error
+                console.log(res);
+          });
+          
+        } else { //internal resource
+            console.log('asset');
+        }
+        
+      });
+    });
+    
+  };
+
   $scope.query = function(query){
       
       $scope.list = [];
-      //$scope.list.external = [];
-     // $scope.list.resource = [];
-          
+                
           searchCourse(query, $scope.courseid, 0).then(function(data) {
             $scope.urls = data;
             
             angular.forEach(data, function(value, key){
-              value.urls = $scope.getUrls(value.arr[0].str);
+              angular.forEach(value.arr, function(arrValue, arrKey) {
+                if(arrValue.undefined.name === 'dlap_html_text' || arrValue.undefined.name === 'dlap_links') {
+                    value.urls = $scope.getUrls(arrValue.str);
+                    value.internalUrls = $scope.getInternalUrls(arrValue.str);
+                    value.resourceUrls = $scope.getResourceUrls(arrValue.str);
+                }
+              });
+              //value.urls = $scope.getUrls(value.arr[0].str);
               angular.forEach(value.urls, function(uvalue, ukey) {
                   $scope.list.push({'entityid': value.undefined.entityid, 'itemid' : value.undefined.itemid, 'title': value.str[2].undefined, 'url' : uvalue, 'type': 'ext'});
               });
-              value.internalUrls = $scope.getInternalUrls(value.arr[0].str);
+              
+              //value.internalUrls = $scope.getInternalUrls(value.arr[0].str);
               angular.forEach(value.internalUrls, function(uvalue, ukey) {
                   $scope.list.push({
                             'entityid': value.undefined.entityid, 
@@ -188,7 +250,7 @@ angular.module('link-checker').controller('LinkCheckerController', ['$scope', '$
                             'type': 'int'});
               });
 
-              value.resourceUrls = $scope.getResourceUrls(value.arr[0].str);
+              //value.resourceUrls = $scope.getResourceUrls(value.arr[0].str);
               angular.forEach(value.resourceUrls, function(uvalue, ukey) {
                   $scope.list.push({
                           'entityid': value.undefined.entityid, 
@@ -202,10 +264,7 @@ angular.module('link-checker').controller('LinkCheckerController', ['$scope', '$
             if($scope.list.length > 0 )
               $scope.checkUrls();
           });
-                   
-             // https://byui.brainhoney.com/Resource/17235627,39,5,E,2,4,2,1C3,C,1,3/Assets/acctg180_LgBanner-2.jpg
-             // https://byui.brainhoney.com/Resource/17235627,39,5,E,2,4,2,1C3,C,1,3/Assets/bednar.png
-             //https://byui.brainhoney.com/Resource/4398809,61/Assets/Course_Evaluations.png
+             
     };
 	}
 ]);

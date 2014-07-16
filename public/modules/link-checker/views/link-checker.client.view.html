@@ -1,17 +1,16 @@
 <section data-ng-controller="LinkCheckerController">
 	<p>Course Manifest</p>
+	<div bh-login ></div>
 <select ng-model='domain' ng-options="d.name for d in domains"></select>
 <select ng-model='course' id='courseSelect' ng-options="c.title for c in courses" ui-select2></select>
 
-<ul>
-<li ng-repeat="domain in domains">{{domain.id}} - {{domain.name}} - {{domain.parentid}}</li></ul>
-<button ng-click="query('href src')">HyperLinks</button><br>
+<button ng-click="query('http href src')">HyperLinks</button><br>
 <table>
 <tr>
 	<th>Item</th><th>URL</th><th>Status</th>
 	</tr>
 	<tr ng-repeat='item in validated.invalid' class="bg-danger">
-		<td><a href="https://byui.brainhoney.com/Frame/Component/CoursePlayer?enrollmentid={{item.entityid}}&itemid={{item.itemid}}" target="_blank">{{item.title}}</td>
+		<td><a href="https://byui.brainhoney.com/Frame/Component/CoursePlayer?enrollmentid={{item.entityid}}&itemid={{item.itemid}}"  target="_blank">{{item.title}}</td>
 		<td>{{item.url}}</td>
 		<td>{{item.status}}</td>
 		
@@ -24,6 +23,6 @@
 	</tr>
 </table>
 
-{{list}}
+{{urls}}
 
 </section>

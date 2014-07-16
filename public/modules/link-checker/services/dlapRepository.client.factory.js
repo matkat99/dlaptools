@@ -27,6 +27,12 @@ angular.module('link-checker')
         return Dlap.jsonp(params);
         
       },
+      getCookie: function() {
+        resetParams();
+        params.cmd = 'getcookie';
+        return Dlap.jsonp(params);
+        
+      },
       getCourseList: function(domain) {
         //$('#select2-drop, #s2id_courseSelect').css({'width': '600px'});
         resetParams();
@@ -47,6 +53,21 @@ angular.module('link-checker')
         resetParams();
         params.cmd = 'getmanifest';
         params.entityid = course.id;
+        return Dlap.jsonp(params);
+      },
+      getResourceList : function(entityid) {
+        resetParams();
+        params.cmd = 'getresourcelist2';
+        params.entityid = entityid;
+        return Dlap.jsonp(params);
+      },
+      getResource : function(entityid, path) {
+        resetParams();
+        params.cmd = 'getresource';
+        params.entityid = entityid;
+        params.path = path;
+       // params.format = null;
+        //params.callback = null;
         return Dlap.jsonp(params);
       },
       searchCourse: function(query, entityid, start){
